@@ -53,7 +53,7 @@ def test_initialization_with_empty_buffer(empty_buffer):
 
     assert circular_buffer.size() == 0, "Buffer size should be 0 upon initialization"
 
-    expected_capacity = len(empty_buffer) - ctypes.sizeof(CircularBufferHeader)
+    expected_capacity = len(empty_buffer) - 1 - ctypes.sizeof(CircularBufferHeader)
     assert circular_buffer.capacity() == expected_capacity, (f"Buffer capacity should be {expected_capacity}, "
                                                              f"considering the CircularBufferHeader size")
 
@@ -71,7 +71,7 @@ def test_initialization_with_predefined_data(empty_buffer, data):
     buffer_with_predefined_data = write_data_in_buffer(empty_buffer, data)
 
     circular_buffer = CircularBuffer(buffer_with_predefined_data)
-    capacity = len(buffer_with_predefined_data) - ctypes.sizeof(CircularBufferHeader)
+    capacity = len(buffer_with_predefined_data) - 1 - ctypes.sizeof(CircularBufferHeader)
     size_in_bytes_of_item_length = ctypes.sizeof(ctypes.c_uint32)
 
     assert not circular_buffer.empty(), "Buffer should not be empty after initialization with predefined data"
@@ -123,7 +123,7 @@ def test_empty_returns_false_if_buffer_is_full(empty_buffer):
     Test that `empty()` returns False for a CircularBuffer that is full,
     ensuring that a full buffer is recognized as not empty.
     """
-    item_size = 128 - ctypes.sizeof(CircularBufferHeader) - ctypes.sizeof(ctypes.c_uint32)
+    item_size = 256 - ctypes.sizeof(CircularBufferHeader) - ctypes.sizeof(ctypes.c_uint32)
     write_data_in_buffer(empty_buffer, [b'x' * item_size, ])
 
     circular_buffer = CircularBuffer(empty_buffer)
@@ -136,7 +136,7 @@ def test_full_returns_true_if_buffer_is_full(empty_buffer):
     Test that `full()` returns True when the CircularBuffer is filled to its capacity,
     indicating the buffer is full.
     """
-    item_size = (128 - ctypes.sizeof(CircularBufferHeader) - ctypes.sizeof(ctypes.c_uint32))
+    item_size = (255 - ctypes.sizeof(CircularBufferHeader) - ctypes.sizeof(ctypes.c_uint32))
     buffer_with_data = write_data_in_buffer(empty_buffer, [b'x' * item_size])
 
     circular_buffer = CircularBuffer(buffer_with_data)
@@ -181,7 +181,7 @@ def test_size_returns_capacity_if_buffer_is_full(empty_buffer):
     Verify that the size method returns the full capacity of the buffer when it is full,
     indicating that the buffer's size matches its capacity when fully utilized.
     """
-    capacity = 128 - ctypes.sizeof(CircularBufferHeader)
+    capacity = 255 - ctypes.sizeof(CircularBufferHeader)
     item_size = capacity - ctypes.sizeof(ctypes.c_uint32)
     buffer_with_data = write_data_in_buffer(empty_buffer, [b'x' * item_size])
 
@@ -242,7 +242,7 @@ def test_put_item_with_size_more_then_capacity_raise_exception(empty_buffer):
 
 
 def test_put_item_with_size_more_then_available_space_overwrites_old_data(empty_buffer):
-    capacity = 128 - ctypes.sizeof(CircularBufferHeader)
+    capacity = 256 - ctypes.sizeof(CircularBufferHeader)
     item_size = capacity - ctypes.sizeof(ctypes.c_uint32)
     buffer_with_data = write_data_in_buffer(empty_buffer, [b'x' * item_size])
 

@@ -1,5 +1,7 @@
 import ctypes
 
+from shmq.exceptions import InsufficientBufferSize
+
 
 class CircularBufferHeader(ctypes.Structure):
     """
@@ -10,7 +12,7 @@ class CircularBufferHeader(ctypes.Structure):
     _fields_ = [
         ("head_index", ctypes.c_uint32),  # Index of the buffer's head (the next position to read from)
         ("tail_index", ctypes.c_uint32),  # Index of the buffer's tail (the next position to write to)
-        ("capacity", ctypes.c_uint32),    # Total capacity of the buffer (maximum number of bytes it can hold)
+        ("max_size", ctypes.c_uint32),    # Total max_size of the buffer (maximum number of bytes it can hold)
     ]
 
 
@@ -28,7 +30,14 @@ class CircularBuffer:
         :param buffer: A bytearray object that backs the circular buffer. This buffer should be
                        large enough to accommodate the CircularBufferHeader and the data elements.
         """
+        if len(buffer) < ctypes.sizeof(CircularBufferHeader):
+            raise InsufficientBufferSize
+
         self._header = CircularBufferHeader.from_buffer(buffer)
+
+        if self._header.max_size == 0:
+            self._header.max_size = len(buffer) - ctypes.sizeof(CircularBufferHeader)
+
         self._buffer_ptr = ctypes.addressof(self._header) + ctypes.sizeof(CircularBufferHeader)
 
     def full(self) -> bool:
@@ -38,7 +47,7 @@ class CircularBuffer:
         :returns: True if the buffer is full, indicating that there is no space for new data
                   without overwriting existing ones, False otherwise.
         """
-        ...
+        return ((self._header.tail_index + 1) % self._header.max_size) == self._header.head_index
 
     def empty(self) -> bool:
         """
@@ -54,7 +63,7 @@ class CircularBuffer:
 
         :returns: The total capacity of the buffer, measured in the maximum number of bytes it can hold.
         """
-        ...
+        return self._header.max_size - 1
 
     def size(self) -> int:
         """
@@ -62,7 +71,13 @@ class CircularBuffer:
 
         :returns: The current number of data stored in the buffer.
         """
-        ...
+        if not self.full():
+            if self._header.tail_index >= self._header.head_index:
+                return self._header.tail_index - self._header.head_index
+            else:
+                return self._header.max_size + self._header.head_index - self._header.tail_index
+        else:
+            return self.capacity()
 
     def reset(self) -> None:
         """
@@ -70,7 +85,8 @@ class CircularBuffer:
 
         This method clears the buffer by setting the head and tail indices back to their initial positions.
         """
-        ...
+        self._header.tail_index = 0
+        self._header.head_index = 0
 
     def put(self, item: bytes) -> None:
         """
