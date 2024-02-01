@@ -46,7 +46,7 @@ class CircularBuffer:
 
         :returns: True if the buffer has no data, indicating that no data can be read, False otherwise.
         """
-        ...
+        return self._header.head_index == self._header.tail_index
 
     def capacity(self) -> int:
         """

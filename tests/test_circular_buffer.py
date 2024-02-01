@@ -124,7 +124,7 @@ def test_empty_returns_false_if_buffer_is_full(empty_buffer):
     ensuring that a full buffer is recognized as not empty.
     """
     item_size = 128 - ctypes.sizeof(CircularBufferHeader) - ctypes.sizeof(ctypes.c_uint32)
-    write_data_in_buffer(empty_buffer, b'x' * item_size)
+    write_data_in_buffer(empty_buffer, [b'x' * item_size, ])
 
     circular_buffer = CircularBuffer(empty_buffer)
 
