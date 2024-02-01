@@ -78,6 +78,8 @@ class CircularBuffer:
 
         :param item: The item (a bytes object) to be added to the buffer. If the buffer is full, this
                      operation overwrite the oldest data.
+
+        :raise InsufficientSpace: If item size is more than buffer capacity.
         """
         ...
 

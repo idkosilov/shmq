@@ -9,3 +9,7 @@ class Full(Exception):
 
 class InsufficientSpace(Exception):
     pass
+
+
+class InsufficientBufferSize(Exception):
+    pass
