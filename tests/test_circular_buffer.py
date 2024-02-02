@@ -238,6 +238,56 @@ def test_reset_makes_buffer_empty(empty_buffer):
     assert circular_buffer.size() == 0, "CircularBuffer size should be 0 after reset"
 
 
+def test_available_size_returns_zero_for_full_buffer(empty_buffer):
+    """
+    Verify that the available_size method returns 0 for a full CircularBuffer,
+    indicating no space is left for new items.
+    """
+    item_size = len(empty_buffer) - CircularBuffer.MIN_BUFFER_SIZE - CircularBuffer.ITEM_PREFIX_SIZE - 1
+    full_buffer = write_data_in_buffer(empty_buffer, [b'x' * item_size])
+
+    circular_buffer = CircularBuffer(full_buffer)
+
+    assert circular_buffer.available_size() == 0, "Available size should be 0 for a full buffer"
+
+
+def test_available_size_returns_capacity_minus_prefix_item_size_for_empty_buffer(empty_buffer):
+    """
+    Verify that the available_size method returns the total capacity minus the size of a single item prefix
+    for an empty CircularBuffer, indicating the maximum single item size that can be added.
+    """
+    circular_buffer = CircularBuffer(empty_buffer)
+
+    expected_available_size = len(empty_buffer) - CircularBuffer.MIN_BUFFER_SIZE - CircularBuffer.ITEM_PREFIX_SIZE
+    assert circular_buffer.available_size() == expected_available_size, (
+        "Available size should match buffer capacity minus prefix size for an empty buffer")
+
+
+@pytest.mark.parametrize("data, description", [
+    ([b'x' * 10], "with a small item"),
+    ([b'x' * 100], "with a medium item"),
+    (lambda buffer: [b'x' * (len(buffer) // 2)], "with a half-filled buffer"),
+])
+def test_available_size_returns_expected_for_different_buffer_configurations(empty_buffer, data, description):
+    """
+    Verify that the available_size method returns the correct available space
+    for CircularBuffers with different configurations of data.
+    """
+    # Evaluate data if it's a function (for dynamic data based on buffer size)
+    if callable(data):
+        data = data(empty_buffer)
+
+    buffer_with_data = write_data_in_buffer(empty_buffer.copy(), data)  # Use a copy to avoid mutation
+    circular_buffer = CircularBuffer(buffer_with_data)
+
+    used_space = sum(len(item) + CircularBuffer.ITEM_PREFIX_SIZE for item in data)
+    expected_available_size = (len(empty_buffer) - CircularBuffer.MIN_BUFFER_SIZE -
+                               CircularBuffer.ITEM_PREFIX_SIZE - used_space - 1)
+
+    assert circular_buffer.available_size() == expected_available_size, (
+        f"Available size should be {expected_available_size} for a buffer {description}")
+
+
 def test_put_item_simple_case(empty_buffer):
     buffer_size = len(empty_buffer)
     expected_buffer = bytearray(buffer_size)
