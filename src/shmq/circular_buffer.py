@@ -12,7 +12,7 @@ class CircularBufferHeader(ctypes.Structure):
     _fields_ = [
         ("read_index", ctypes.c_uint32),  # Index of the buffer's head (the next position to read from)
         ("write_index", ctypes.c_uint32),  # Index of the buffer's tail (the next position to write to)
-        ("max_size", ctypes.c_uint32),    # Total max_size of the buffer (maximum number of bytes it can hold)
+        ("max_size", ctypes.c_uint32),  # Total max_size of the buffer (maximum number of bytes it can hold)
     ]
 
 
@@ -90,6 +90,18 @@ class CircularBuffer:
         """
         self._header.write_index = 0
         self._header.read_index = 0
+
+    def available_size(self) -> int:
+        """
+        Get the available space for writing data into the circular buffer.
+
+        :returns: The current available space in the buffer, measured in bytes, that can be used
+                  to write new data without overwriting existing data.
+        """
+        if self.full():
+            return 0
+        else:
+            return self.capacity() - self.size() - CircularBuffer.ITEM_PREFIX_SIZE
 
     def put(self, item: bytes) -> None:
         """
