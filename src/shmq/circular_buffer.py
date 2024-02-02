@@ -10,8 +10,8 @@ class CircularBufferHeader(ctypes.Structure):
     indices are used to manage the state of the circular buffer efficiently.
     """
     _fields_ = [
-        ("head_index", ctypes.c_uint32),  # Index of the buffer's head (the next position to read from)
-        ("tail_index", ctypes.c_uint32),  # Index of the buffer's tail (the next position to write to)
+        ("read_index", ctypes.c_uint32),  # Index of the buffer's head (the next position to read from)
+        ("write_index", ctypes.c_uint32),  # Index of the buffer's tail (the next position to write to)
         ("max_size", ctypes.c_uint32),    # Total max_size of the buffer (maximum number of bytes it can hold)
     ]
 
@@ -47,7 +47,7 @@ class CircularBuffer:
         :returns: True if the buffer is full, indicating that there is no space for new data
                   without overwriting existing ones, False otherwise.
         """
-        return ((self._header.tail_index + 1) % self._header.max_size) == self._header.head_index
+        return ((self._header.write_index + 1) % self._header.max_size) == self._header.read_index
 
     def empty(self) -> bool:
         """
@@ -55,7 +55,7 @@ class CircularBuffer:
 
         :returns: True if the buffer has no data, indicating that no data can be read, False otherwise.
         """
-        return self._header.head_index == self._header.tail_index
+        return self._header.read_index == self._header.write_index
 
     def capacity(self) -> int:
         """
@@ -72,10 +72,10 @@ class CircularBuffer:
         :returns: The current number of data stored in the buffer.
         """
         if not self.full():
-            if self._header.tail_index >= self._header.head_index:
-                return self._header.tail_index - self._header.head_index
+            if self._header.write_index >= self._header.read_index:
+                return self._header.write_index - self._header.read_index
             else:
-                return self._header.max_size + self._header.head_index - self._header.tail_index
+                return self._header.max_size + self._header.read_index - self._header.write_index
         else:
             return self.capacity()
 
@@ -85,8 +85,8 @@ class CircularBuffer:
 
         This method clears the buffer by setting the head and tail indices back to their initial positions.
         """
-        self._header.tail_index = 0
-        self._header.head_index = 0
+        self._header.write_index = 0
+        self._header.read_index = 0
 
     def put(self, item: bytes) -> None:
         """

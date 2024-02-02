@@ -21,12 +21,12 @@ def empty_buffer():
 def write_data_in_buffer(buffer: bytearray, data: list[bytes]) -> bytearray:
     size_in_bytes_of_item_length = ctypes.sizeof(ctypes.c_uint32)
     header_size = ctypes.sizeof(CircularBufferHeader)
-    head_index = 0
-    tail_index = sum(len(item) + size_in_bytes_of_item_length for item in data)
-    capacity = len(buffer) - header_size
+    read_index = 0
+    write_index = sum(len(item) + size_in_bytes_of_item_length for item in data)
+    max_size = len(buffer) - header_size
 
     # Pack the header information
-    struct.pack_into("<III", buffer, 0, head_index, tail_index, capacity)
+    struct.pack_into("<III", buffer, 0, read_index, write_index, max_size)
 
     # Pack the data
     data_offset = header_size
