@@ -22,6 +22,9 @@ class CircularBuffer:
     data structure. This buffer is particularly useful for scenarios where a constant memory
     footprint is required, and old data can be safely overwritten by new data when the buffer is full.
     """
+    HEADER_SIZE = ctypes.sizeof(CircularBufferHeader)
+    ITEM_PREFIX_SIZE = ctypes.sizeof(ctypes.c_uint32)  # Size prefix for each item
+    MIN_BUFFER_SIZE = HEADER_SIZE + 1
 
     def __init__(self, buffer: bytearray | memoryview) -> None:
         """
@@ -30,15 +33,15 @@ class CircularBuffer:
         :param buffer: A bytearray object that backs the circular buffer. This buffer should be
                        large enough to accommodate the CircularBufferHeader and the data elements.
         """
-        if len(buffer) < ctypes.sizeof(CircularBufferHeader):
+        if len(buffer) < CircularBuffer.MIN_BUFFER_SIZE:
             raise InsufficientBufferSize
 
         self._header = CircularBufferHeader.from_buffer(buffer)
 
         if self._header.max_size == 0:
-            self._header.max_size = len(buffer) - ctypes.sizeof(CircularBufferHeader)
+            self._header.max_size = len(buffer) - CircularBuffer.HEADER_SIZE
 
-        self._buffer_ptr = ctypes.addressof(self._header) + ctypes.sizeof(CircularBufferHeader)
+        self._buffer_ptr = ctypes.addressof(self._header) + CircularBuffer.HEADER_SIZE
 
     def full(self) -> bool:
         """
