@@ -308,68 +308,48 @@ def test_put_item_with_size_more_then_capacity_raise_exception(empty_buffer):
 
 def test_put_item_with_size_more_then_available_space_overwrites_old_data(empty_buffer):
     capacity = 256 - CircularBuffer.MIN_BUFFER_SIZE
-    item_size = capacity - ctypes.sizeof(ctypes.c_uint32)
+    item_size = capacity - CircularBuffer.ITEM_PREFIX_SIZE
     buffer_with_data = write_data_in_buffer(empty_buffer, [b'x' * item_size])
 
-    circular_buffer = CircularBuffer(empty_buffer)
+    circular_buffer = CircularBuffer(buffer_with_data)
     circular_buffer.put(b'new_data')
 
-    header_offset = ctypes.sizeof(CircularBufferHeader)
 
-    # TODO
-
-
-def test_put_item_in_full_buffer_overwrites_old_data(circular_buffer):
-    ...
-
-
-def test_put_items_to_limit_of_capacity_makes_buffer_full(circular_buffer):
-    ...
-
-
-def test_put_item_after_read_operation_in_full_buffer_works_correct(circular_buffer):
+def test_put_item_in_full_buffer_overwrites_old_data(empty_buffer):
+    """
+    Verify that putting an item into a full buffer overwrites the oldest data,
+    ensuring the circular buffer's FIFO behavior is maintained.
+    """
     ...
 
 
 def test_put_item_in_partially_filled_buffer(circular_buffer):
+    """
+    Verify that adding an item to a partially filled buffer increases its size accordingly
+    without overwriting existing data until full.
+    """
     ...
 
 
 def test_put_various_sized_items(circular_buffer):
-    ...
-
-
-def test_sequential_put_and_get(circular_buffer):
-    ...
-
-
-def test_put_get_put_to_test_wraparound(circular_buffer):
-    ...
-
-
-def test_put_item_immediately_retrievable(circular_buffer):
-    ...
-
-
-def test_stress_put_and_get(circular_buffer):
+    """
+    Test putting various sized items into the buffer and verify it handles them correctly,
+    respecting the buffer's capacity and FIFO behavior.
+    """
     ...
 
 
 def test_get_from_non_empty_buffer(circular_buffer):
+    """
+    Verify that getting an item from a non-empty buffer returns the correct data,
+    and the buffer's size decreases accordingly.
+    """
     ...
 
 
 def test_get_from_empty_buffer_raises_exception(circular_buffer):
+    """
+    Verify that attempting to get an item from an empty buffer raises an appropriate exception.
+    """
     ...
 
-
-def test_sequential_get_until_empty(circular_buffer):
-    ...
-
-
-def test_get_after_reset(circular_buffer):
-    ...
-
-
-def test_get_with_state_check_after_each_operation(circular_buffer):
-    ...
